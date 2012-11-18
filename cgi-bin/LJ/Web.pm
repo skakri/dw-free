@@ -2484,17 +2484,13 @@ sub need_res {
     foreach my $reskey (@_) {
         die "Bogus reskey $reskey" unless $reskey =~ m!^(js|stc)/!;
 
-        my $resinclude;
-        $resinclude = $LJ::MINIFY{$reskey} unless $LJ::IS_DEV_SERVER;
-        $resinclude ||= $reskey;
-
         # we put javascript in the 'default' group and CSS in the 'all' group
         # since we need CSS everywhere and we are switching JS groups
         my $lgroup = $group || ( $reskey =~ /^js/ ? 'default' : 'all' );
         unless ($LJ::NEEDED_RES{"$lgroup-$reskey"}++) {
             $LJ::NEEDED_RES[$priority] ||= [];
 
-            push @{$LJ::NEEDED_RES[$priority]}, [ $lgroup, $resinclude ];
+            push @{$LJ::NEEDED_RES[$priority]}, [ $lgroup, $reskey ];
         }
     }
 }
@@ -3153,14 +3149,14 @@ LOGIN_BAR
     # a quick little routine to use when cycling through the options
     # to create the style links for the nav bar
     my $make_style_link = sub {
-        return create_url( $uri,
+        return LJ::ehtml( create_url( $uri,
             host => $host,
             cur_args => $argshash,
             # change the style arg
             'args' => { 'style' => $_[0] },
             # keep any other existing arguments
             'keep_args' => 1,
-        );
+        ) );
     };
 
     # cycle through all possibilities, add the valid ones
